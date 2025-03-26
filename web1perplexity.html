@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>University Timetable</title>
+  <style>
+    :root {
+      /* Dark mode color palette inspired by Apple's design */
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2c2c2c;
+      --text-primary: #f5f5f7;
+      --text-secondary: #86868b;
+      --accent-blue: #0a84ff;
+      --accent-green: #30d158;
+      --accent-orange: #ff9f0a;
+      --accent-purple: #bf5af2;
+      --accent-red: #ff453a;
+
+      /* Activity type colors */
+      --lecture-color: #0a84ff;
+      --lab-color: #30d158;
+      --seminar-color: #ff9f0a;
+      --project-color: #bf5af2;
+      --sports-color: #ff453a;
+
+      /* Daily routine background gradient */
+      --routine-bg: linear-gradient(135deg, #2c2c2c, #1f1f1f);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .week-toggle {
+      display: flex;
+      background-color: var(--bg-secondary);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .week-toggle button {
+      background-color: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .week-toggle button.active {
+      background-color: var(--accent-blue);
+      color: white;
+    }
+
+    main {
+      display: flex;
+      gap: 30px;
+    }
+
+    .schedule-container {
+      flex: 2;
+      background-color: var(--bg-secondary);
+      border-radius: 15px;
+      overflow: auto; /* Enable scrolling if needed */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .schedule {
+      width: 100%;
+      min-width: 600px; /* Ensure the table has a minimum width */
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .schedule thead {
+      background-color: rgba(255,255,255,0.05);
+    }
+
+    .schedule th,
+    .schedule td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px;
+      text-align: left;
+    }
+
+    .schedule th {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .activity-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .activity-container span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    /* Activity type colors with rounded corners */
+    .lecture { background-color: rgba(10, 132, 255, 0.1); }
+    .lab { background-color: rgba(48, 209, 88, 0.1); }
+    .seminar { background-color: rgba(255, 159, 10, 0.1); }
+    .project { background-color: rgba(191, 90, 242, 0.1); }
+    .sports { background-color: rgba(255, 69, 58, 0.1); }
+
+    /* Daily Routine Section */
+    .daily-routine {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .routine-card {
+      background: var(--routine-bg);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .routine-card h3 {
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 10px;
+    }
+
+    .routine-event {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .routine-event:last-child {
+      border-bottom: none;
+    }
+
+    .routine-event.completed span {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .routine-event input[type="checkbox"] {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    @media screen and (max-width: 1024px) {
+      main {
+        flex-direction: column;
+      }
+      .schedule-container {
+        width: 100%;
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      .week-toggle {
+        flex-direction: column;
+        width: 100%;
+      }
+      .week-toggle button {
+        width: 100%;
+        padding: 15px;
+      }
+      header {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>University Timetable</h1>
+      <div class="week-toggle">
+        <button id="evenBtn" class="active">Even Week</button>
+        <button id="oddBtn">Odd Week</button>
+      </div>
+    </header>
+    <main>
+      <!-- Schedule Section -->
+      <div class="schedule-container">
+        <table class="schedule">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Luni</th>
+              <th>Marți</th>
+              <th>Miercuri</th>
+              <th>Joi</th>
+              <th>Vineri</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody">
+            <!-- Schedule rows will be injected here -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- Daily Routine Section -->
+    <section class="daily-routine">
+      <!-- Monday Routine Card -->
+      <div class="routine-card" id="mondayRoutine">
+        <h3>Luni</h3>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>07:00-08:00: Morning workout (optional)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>08:00-08:30: Breakfast</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>08:30-09:00: Commute (study notes)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>09:00-17:00: Classes</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>17:00-18:00: Commute home (relax or study)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>18:00-19:00: Dinner</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>19:00-21:00: Study (focus on Monday subjects)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>21:00-22:00: Relax/hobby</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>22:00: Bed</span>
+        </div>
+      </div>
+      <!-- Tuesday Routine Card -->
+      <div class="routine-card" id="tuesdayRoutine">
+        <h3>Marți</h3>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>08:00-09:00: Workout</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>09:00-10:00: Breakfast + prep</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>10:00-11:00: Commute (study)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>11:00-17:00: Classes</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>17:00-18:00: Commute home</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>18:00-19:00: Dinner</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>19:00-20:30: Study</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>20:30-21:30: Relax</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>21:30: Bed</span>
+        </div>
+      </div>
+      <!-- Wednesday Routine Card -->
+      <div class="routine-card" id="wednesdayRoutine">
+        <h3>Miercuri</h3>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>07:00-08:00: Workout</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>08:00-08:30: Breakfast</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>08:30-09:00: Commute</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>09:00-13:00: Classes</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>13:00-14:00: Lunch</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>14:00-16:00: Study at uni (library)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>16:00-17:00: Commute home</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>17:00-19:00: Dinner + relax</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>19:00-20:00: Light study</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>20:00-21:00: Hobby</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>21:00: Bed</span>
+        </div>
+      </div>
+      <!-- Thursday Routine Card -->
+      <div class="routine-card" id="thursdayRoutine">
+        <h3>Joi</h3>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>09:00-10:00: Workout (if free)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>10:00-11:00: Breakfast + prep</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>11:00-12:00: Commute</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>12:00-19:00: Classes (varies)</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>After: Commute, dinner, study (1-2 hrs), relax</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>22:00: Bed</span>
+        </div>
+      </div>
+      <!-- Friday Routine Card -->
+      <div class="routine-card" id="fridayRoutine">
+        <h3>Vineri</h3>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>08:00-09:00: Workout</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>09:00-10:00: Breakfast + prep</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>10:00-11:00: Commute</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>11:00-17:00: Classes</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>17:00-18:00: Commute home</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>18:00-19:00: Dinner</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>19:00-20:30: Study</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>20:30-22:00: Relax/socialize</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>22:00: Bed</span>
+        </div>
+      </div>
+      <!-- Weekend Routine Card -->
+      <div class="routine-card" id="weekendRoutine">
+        <h3>Weekend</h3>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>Saturday: Longer study (3-4 hrs), workout, catch up on assignments, relax.</span>
+        </div>
+        <div class="routine-event">
+          <input type="checkbox" onchange="toggleRoutineEvent(this)">
+          <span>Sunday: Meal prep, study (2-3 hrs), workout, plan next week.</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    /***********************
+     * Schedule Data
+     ***********************/
+    const evenWeek = {
+      "Luni": [
+        { time: "09:00–11:00", title: "Fizică 2", type: "lecture" },
+        { time: "11:00–13:00", title: "Programare Calculatoarelor", type: "lecture" },
+        { time: "13:00–15:00", title: "Matematici Speciale", type: "lecture" },
+        { time: "15:00–17:00", title: "METc", type: "lecture" }
+      ],
+      "Marți": [
+        { time: "13:00–15:00", title: "PCLP", type: "lab" },
+        { time: "15:00–17:00", title: "IA", type: "project" }
+      ],
+      "Miercuri": [
+        { time: "09:00–11:00", title: "Fizică 2", type: "lecture" },
+        { time: "11:00–13:00", title: "ME", type: "lecture" }
+      ],
+      "Joi": [
+        { time: "12:00–15:00", title: "METc", type: "lab" },
+        { time: "15:00–17:00", title: "Sport", type: "sports" }
+      ],
+      "Vineri": [
+        { time: "13:00–15:00", title: "Bazele Electrotehnicii", type: "lecture" },
+        { time: "15:00–17:00", title: "Instituții Politice și Administrative Europene", type: "lecture" }
+      ]
+    };
+
+    const oddWeek = {
+      "Luni": [
+        { time: "11:00–13:00", title: "Programare Calculatoarelor", type: "lecture" },
+        { time: "13:00–15:00", title: "Matematici Speciale", type: "lecture" },
+        { time: "15:00–17:00", title: "METc", type: "lecture" }
+      ],
+      "Marți": [
+        { time: "11:00–13:00", title: "Fizică", type: "lab" },
+        { time: "13:00–15:00", title: "PCLP", type: "lab" }
+      ],
+      "Miercuri": [
+        { time: "09:00–11:00", title: "Fizică 2", type: "lecture" },
+        { time: "11:00–13:00", title: "ME", type: "lecture" }
+      ],
+      "Joi": [
+        { time: "12:00–15:00", title: "ME", type: "lab" },
+        { time: "15:00–17:00", title: "BE2", type: "seminar" },
+        { time: "17:00–19:00", title: "MS", type: "seminar" }
+      ],
+      "Vineri": [
+        { time: "11:00–13:00", title: "Matematici Speciale", type: "lecture" },
+        { time: "13:00–15:00", title: "Bazele Electrotehnicii", type: "lecture" },
+        { time: "15:00–17:00", title: "Instituții Politice și Administrative Europene", type: "lecture" }
+      ]
+    };
+
+    let currentWeek = "even";
+
+    // Get unique time slots from schedule
+    function getTimeSlots(schedule) {
+      const times = new Set();
+      Object.keys(schedule).forEach(day => {
+        schedule[day].forEach(item => times.add(item.time));
+      });
+      return Array.from(times).sort();
+    }
+
+    function renderSchedule() {
+      const scheduleData = currentWeek === "even" ? evenWeek : oddWeek;
+      const timeSlots = getTimeSlots(scheduleData);
+      const days = ["Luni", "Marți", "Miercuri", "Joi", "Vineri"];
+      let html = "";
+      timeSlots.forEach(slot => {
+        html += `<tr><td>${slot}</td>`;
+        days.forEach(day => {
+          let cell = "";
+          if (scheduleData[day]) {
+            const activity = scheduleData[day].find(a => a.time === slot);
+            if (activity) {
+              cell = `<div class="activity-container ${activity.type}">
+                        <span>${activity.title}</span>
+                      </div>`;
+            }
+          }
+          html += `<td>${cell}</td>`;
+        });
+        html += `</tr>`;
+      });
+      document.getElementById("scheduleBody").innerHTML = html;
+    }
+
+    // Toggle week buttons
+    function setWeek(week) {
+      currentWeek = week;
+      document.getElementById("evenBtn").classList.toggle("active", week === "even");
+      document.getElementById("oddBtn").classList.toggle("active", week === "odd");
+      renderSchedule();
+    }
+
+    document.getElementById("evenBtn").addEventListener("click", () => setWeek("even"));
+    document.getElementById("oddBtn").addEventListener("click", () => setWeek("odd"));
+
+    // Initial render
+    renderSchedule();
+
+    // Toggle completion for daily routine events
+    function toggleRoutineEvent(checkbox) {
+      const container = checkbox.parentElement;
+      if (checkbox.checked) {
+        container.classList.add("completed");
+      } else {
+        container.classList.remove("completed");
+      }
+    }
+  </script>
+</body>
+</html>
