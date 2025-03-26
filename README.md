@@ -1,2 +1,0 @@
-# naitimetable
-minmaxlifefor me 
